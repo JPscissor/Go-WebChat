@@ -1,0 +1,3 @@
+backend/storage/*.db
+backend/storage/chat.db
+backend/config/dbconf.go
