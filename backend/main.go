@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	store, err := storage.New(config.DbUrl)
+
+	DbUrl := "postgresql://postgres:277353@localhost:5432/chatdb"
+
+	store, err := storage.New(DbUrl)
 	if err != nil {
 		log.Fatal("Failed to initialize storage: ", err)
 	}
@@ -24,10 +27,12 @@ func main() {
 	go handlers.MessagesHandler()
 
 	http.HandleFunc("/ws", handlers.HandleConnections)
+	http.HandleFunc("/upload", handlers.HandleImageUpload)
+	http.HandleFunc("/uploads/", handlers.ServeUploadedFiles)
 
 	config.ServeFrontend()
 
-	port := config.GetPort()
-	log.Printf("Server starting on http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	//port := config.GetPort()
+	log.Printf("Server started")
+	log.Fatal(http.ListenAndServe("0.0.0.0:2773", nil))
 }

@@ -154,12 +154,27 @@ h1 {
   padding: 15px;
   border-top: 1px solid #eee;
   display: flex;
+  flex-direction: column;
   background: white;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 }
 
-.input-area input {
+.image-preview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+}
+
+.input-area input[type="text"] {
   flex-grow: 1;
   padding: 12px;
   border: 1px solid #ddd;
@@ -176,4 +191,26 @@ h1 {
   border-radius: 24px;
   cursor: pointer;
   min-width: 100px;
+}
+
+.input-area button:hover {
+  background-color: #2980b9;
+}
+
+/* Стили для изображений в сообщениях */
+.message-image {
+  margin-top: 8px;
+}
+
+.message-image img {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.message-image img:hover {
+  transform: scale(1.02);
 }

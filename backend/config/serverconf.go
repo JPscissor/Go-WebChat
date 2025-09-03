@@ -6,22 +6,24 @@ import (
 	"os"
 )
 
+var BldPath = "/home/student210/Документы/Zhuravlev22-40/docs/Go-WebChat/frontend/build"
+
 func ServeFrontend() {
-	if _, err := os.Stat("./frontend/build"); os.IsNotExist(err) {
+	if _, err := os.Stat(BldPath); os.IsNotExist(err) {
 		log.Fatal("React build directory not found. Please run 'npm run build' in frontend directory first.")
 	}
 
-	fs := http.FileServer(http.Dir("./frontend/build"))
+	fs := http.FileServer(http.Dir(BldPath))
 	http.Handle("/", fs)
 
 	http.HandleFunc("/chat", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./frontend/build/index.html")
+		http.ServeFile(w, r, BldPath+"/index.html")
 	})
 }
 
-func GetPort() string {
-	if port := os.Getenv("PORT"); port != "" {
-		return port
-	}
-	return "8080"
-}
+// func GetPort() string {
+// 	if port := os.Getenv("PORT"); port != "" {
+// 		return port
+// 	}
+// 	return "8080"
+// }

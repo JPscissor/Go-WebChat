@@ -15,7 +15,10 @@ func sendInitialData(ws *websocket.Conn, nickname string) error {
 		return err
 	}
 
-	handleMessage("Система", nickname+" подключился к чату")
+	handleMessage("Система", models.ClientMessage{
+		Text: nickname + " подключился к чату",
+		Type: "text",
+	})
 
 	return nil
 }
@@ -27,7 +30,7 @@ func processMessages(ws *websocket.Conn, nickname string) {
 			log.Printf("Read error: %v", err)
 			break
 		}
-		if err := handleMessage(nickname, msg.Text); err != nil {
+		if err := handleMessage(nickname, msg); err != nil {
 			log.Printf("Message handling error: %v", err)
 		}
 	}
@@ -39,16 +42,33 @@ func readClientMessage(ws *websocket.Conn) (models.ClientMessage, error) {
 	return msg, err
 }
 
-func handleMessage(nickname, text string) error {
-	if err := storage.StorageRepo.SaveMessage(nickname, text); err != nil {
+func handleMessage(nickname string, msg models.ClientMessage) error {
+	var err error
+
+	// Определяем тип сообщения и сохраняем соответственно
+	if msg.Type == "image" && msg.ImageURL != "" {
+		err = storage.StorageRepo.SaveImageMessage(nickname, msg.Text, msg.ImageURL)
+	} else {
+		err = storage.StorageRepo.SaveMessage(nickname, msg.Text)
+	}
+
+	if err != nil {
 		return err
 	}
 
-	config.Broadcast <- models.Message{
+	// Создаем сообщение для broadcast
+	broadcastMsg := models.Message{
 		Nickname: nickname,
-		Text:     text,
+		Text:     msg.Text,
 		Time:     time.Now().Format(time.RFC3339),
+		Type:     msg.Type,
 	}
+
+	if msg.Type == "image" {
+		broadcastMsg.ImageURL = msg.ImageURL
+	}
+
+	config.Broadcast <- broadcastMsg
 	return nil
 }
 

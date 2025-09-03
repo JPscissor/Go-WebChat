@@ -45,6 +45,8 @@ func createTables(db *sql.DB) error {
             id SERIAL PRIMARY KEY,
             nickname TEXT NOT NULL,
             text TEXT NOT NULL,
+            image_url TEXT,
+            message_type TEXT NOT NULL DEFAULT 'text',
             timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )`)
 	return err
@@ -52,8 +54,15 @@ func createTables(db *sql.DB) error {
 
 func (s *Storage) SaveMessage(nickname, text string) error {
 	_, err := s.db.Exec(
-		"INSERT INTO messages (nickname, text) VALUES ($1, $2)",
+		"INSERT INTO messages (nickname, text, message_type) VALUES ($1, $2, 'text')",
 		nickname, text)
+	return err
+}
+
+func (s *Storage) SaveImageMessage(nickname, text, imageURL string) error {
+	_, err := s.db.Exec(
+		"INSERT INTO messages (nickname, text, image_url, message_type) VALUES ($1, $2, $3, 'image')",
+		nickname, text, imageURL)
 	return err
 }
 
@@ -62,6 +71,8 @@ func (s *Storage) GetLastMessages(limit int) ([]models.Message, error) {
         SELECT 
             nickname, 
             text, 
+            image_url,
+            message_type,
             TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS time
         FROM messages 
         ORDER BY timestamp DESC 
@@ -74,9 +85,13 @@ func (s *Storage) GetLastMessages(limit int) ([]models.Message, error) {
 	var messages []models.Message
 	for rows.Next() {
 		var m models.Message
-		if err := rows.Scan(&m.Nickname, &m.Text, &m.Time); err != nil {
+		var imageURL sql.NullString
+		if err := rows.Scan(&m.Nickname, &m.Text, &imageURL, &m.Type, &m.Time); err != nil {
 			log.Printf("Scan error: %v", err)
 			continue
+		}
+		if imageURL.Valid {
+			m.ImageURL = imageURL.String
 		}
 		messages = append(messages, m)
 	}
